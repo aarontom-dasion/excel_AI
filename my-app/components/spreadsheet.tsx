@@ -36,19 +36,33 @@ export default function Spreadsheet({ initialData = [] }: SpreadsheetProps) {
     toast.info(`Selected action: ${action}`)
   }
 
-  const handleRun = () => {
+  const handleRun = async () => {
     if (!activeColumn) {
-      toast.error('Please select an action first')
-      return
+      toast.error('Please select an action first');
+      return;
     }
-    
-    setIsProcessing(true)
-    // Simulate processing
-    setTimeout(() => {
-      toast.success(`Executed ${activeColumn} successfully`)
-      setIsProcessing(false)
-    }, 1500)
-  }
+  
+    setIsProcessing(true);
+  
+    try {
+      const response = await fetch(`http://localhost:3000/${activeColumn}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          data: selection,
+        }),
+      });
+  
+      const result = await response.json();
+      toast.success(`Executed ${activeColumn} successfully: ${result.result}`);
+    } catch (error) {
+      toast.error('Error processing data');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   const handleCellClick = (row: number, col: number) => {
     if (selection.start?.row === row && selection.start?.col === col) {
